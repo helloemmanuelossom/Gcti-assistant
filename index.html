@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GCTI Assistant</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background-color: #0A0725;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    .logo {
+      height: 50px;
+    }
+    .chat-container {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-bubble {
+      max-width: 75%;
+      padding: 0.75rem;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+    }
+    .user {
+      background-color: #FFA800;
+      align-self: flex-end;
+      color: black;
+    }
+    .bot {
+      background-color: #e0e0e0;
+      align-self: flex-start;
+    }
+    .chat-input {
+      display: flex;
+      padding: 1rem;
+      background: white;
+      border-top: 1px solid #ccc;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+    }
+    .chat-input button {
+      padding: 0.75rem 1.5rem;
+      background-color: #FFA800;
+      border: none;
+      cursor: pointer;
+      color: white;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img class="logo" src="https://geescateringtraininginstitute.com/wp-content/uploads/2025/04/cropped-Site_Logo-removebg-preview-1.png" alt="GCTI Logo"/>
+    <h1>GCTI Assistant</h1>
+    <p>I can help with admission, payment, courses, hostel & more.</p>
+  </header>
+
+  <div class="chat-container" id="chat"></div>
+
+  <div class="chat-input">
+    <input type="text" id="userInput" placeholder="Ask me anything..." />
+    <button onclick="handleUserInput()">Send</button>
+  </div>
+
+  <script>
+    const chat = document.getElementById('chat');
+    const input = document.getElementById('userInput');
+
+    const GEMINI_API_KEY = "AIzaSyA0DNlAVQPQgZNoaFtRSXy8JKzeX3gOHOA"; // your key
+
+    const promptIntro = `👋 You are the GCTI Assistant — an AI chatbot for Gee’s Catering Training Institute, Ghana 🇬🇭.
+
+You help users in English and Twi.
+
+You answer questions like:
+
+- How to get admission
+- Course duration, fees, and available programs
+- Hostel facilities
+- Where the school is located
+- Share admission and payment form links
+- General help
+
+School Details:
+📍 Location: Accra-Adenta (Pantang Junction)
+📞 Call: 0556441259
+🌐 Website: https://geescateringtraininginstitute.com/
+📝 Admission: https://tinyurl.com/Gain-admission
+💰 Payment: https://tinyurl.com/pay-your-fee
+
+Also mention:
+- 1–3 month short courses available
+- Hostel fee: GHS 2000 per term (3 months)
+
+Now politely answer this user's message:`;
+
+    async function handleUserInput() {
+      const message = input.value.trim();
+      if (!message) return;
+
+      addMessage(message, 'user');
+      input.value = '';
+
+      const reply = await getGeminiReply(message);
+      addMessage(reply, 'bot');
+    }
+
+    function addMessage(text, sender) {
+      const bubble = document.createElement('div');
+      bubble.className = `chat-bubble ${sender}`;
+      bubble.textContent = text;
+      chat.appendChild(bubble);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function getGeminiReply(message) {
+      try {
+        const res = await fetch(
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + GEMINI_API_KEY,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: promptIntro + '\nUser: ' + message }] }]
+            })
+          }
+        );
+        const data = await res.json();
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't understand that.";
+      } catch (error) {
+        return "⚠️ Something went wrong. Check your API key or internet connection.";
+      }
+    }
+  </script>
+</body>
+</html>
